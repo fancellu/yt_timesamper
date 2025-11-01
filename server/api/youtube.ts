@@ -57,14 +57,56 @@ export async function getTranscript(videoId: string): Promise<TranscriptItem[]> 
 }
 
 export async function getVideoMetadata(videoId: string): Promise<VideoMetadata> {
-  const yt = await Innertube.create({ cache: new UniversalCache(false) });
-  const info = await yt.getInfo(videoId);
+  // Try oembed API first (more reliable)
+  try {
+    const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+    if (response.ok) {
+      const data = await response.json() as any;
+      // oembed doesn't provide duration, so we still need youtubei for that
+      const title = data.title || 'Unknown Title';
+      
+      // Try to get duration from youtubei
+      let duration = '0:00';
+      try {
+        const yt = await Innertube.create({ cache: new UniversalCache(false) });
+        const info = await yt.getInfo(videoId);
+        const seconds = info.basic_info?.duration || 0;
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        duration = `${minutes}:${secs.toString().padStart(2, '0')}`;
+      } catch (e) {
+        // Duration fetch failed, use 0:00
+      }
+      
+      return { videoId, title, duration };
+    }
+  } catch (e) {
+    // Fall through to youtubei method
+  }
   
-  const title = info.basic_info.title || 'Unknown Title';
-  const seconds = info.basic_info.duration || 0;
-  const minutes = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  const duration = `${minutes}:${secs.toString().padStart(2, '0')}`;
+  // Fallback to youtubei.js
+  const originalConsoleError = console.error;
+  const originalStderrWrite = process.stderr.write;
   
-  return { videoId, title, duration };
+  console.error = () => {};
+  process.stderr.write = () => true;
+  
+  try {
+    const yt = await Innertube.create({ cache: new UniversalCache(false) });
+    const info = await yt.getInfo(videoId);
+    
+    const title = info.basic_info?.title || 
+                  (info as any).primary_info?.title?.text || 
+                  'Unknown Title';
+    
+    const seconds = info.basic_info?.duration || 0;
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    const duration = `${minutes}:${secs.toString().padStart(2, '0')}`;
+    
+    return { videoId, title, duration };
+  } finally {
+    console.error = originalConsoleError;
+    process.stderr.write = originalStderrWrite;
+  }
 }
