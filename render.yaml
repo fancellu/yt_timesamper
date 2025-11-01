@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: yt-timestamp-search
+    name: yt-timestamper
     env: node
     buildCommand: npm install && npm run build
     startCommand: npm start

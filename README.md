@@ -4,7 +4,7 @@ Search across YouTube video transcripts and jump to specific timestamps. No API 
 
 ## Live Demo
 
-🚀 **Try it now:** [https://yt-timesamper.onrender.com/](https://yt-timesamper.onrender.com/)
+🚀 **Try it now:** [https://yt-timestamper.onrender.com/](https://yt-timestamper.onrender.com/)
 
 **Quick test:**
 1. Paste this URL: `https://www.youtube.com/watch?v=79MZkur73c4`
@@ -101,7 +101,7 @@ Tests verify:
 ## Project Structure
 
 ```
-yt_timesamper/
+yt-timestamper/
 ├── src/                    # Frontend (Svelte)
 │   ├── lib/               # Svelte components
 │   ├── App.svelte         # Main app component
