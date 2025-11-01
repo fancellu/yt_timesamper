@@ -63,7 +63,7 @@
         fetch(`${API_URL}/api/video/${videoId}/transcript`).then(r => r.json())
       ]);
       
-      if (!metadata.title || metadata.title === 'Unknown Title' || metadata.duration === '0:00') {
+      if (!metadata.title || metadata.title === 'Unknown Title') {
         throw new Error('Invalid video');
       }
       
